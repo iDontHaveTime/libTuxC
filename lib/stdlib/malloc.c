@@ -33,7 +33,7 @@ void* aligned_malloc(size_t align, size_t size){
     void* user_ptr = (void*)aligned_addr;
     MallocPointer* header = (MallocPointer*)((char*)user_ptr - sizeof(MallocPointer));
     header->size = got;
-    header->user_request = size;
+    header->user_request = got - ((uintptr_t)user_ptr - (uintptr_t)raw);
 
     return user_ptr;
 }
@@ -57,13 +57,11 @@ void* realloc(void* mem, size_t newSize){
     MallocPointer* ptr = __get_malloc_ptr(mem);
     if(newSize <= ptr->user_request) return mem;
 
-    
-
     void* newMem = malloc(newSize);
     if(!newMem){
         return NULL;
     }
-    memcpy(newMem, mem, ptr->user_request);
+    memcpy(newMem, mem, (newSize < ptr->user_request) ? newSize : ptr->user_request);
     free(mem);
     return newMem;
 }

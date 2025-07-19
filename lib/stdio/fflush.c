@@ -3,9 +3,16 @@
 #include "noncstd/stdiofile.h"
 
 int fflush(FILE* fs){
+    if(!fs){
+        return __fflush_all();
+    }
+    fs->read_ptr = fs->buff_start;
     if(fs->buff_ptr == fs->buff_start) return 0;
 
-    if(!(fs->open_mode & __FILE_MODE_WRITE)) return EOF;
+    if((fs->open_mode & __FILE_MODE_READ) && !(fs->open_mode & __FILE_MODE_WRITE)){
+        fs->buff_ptr = fs->buff_start;
+        return 0;
+    }
 
     fs->lastop = __FILE_LAST_OP_NONE;
     fs->last_flushed = *(fs->buff_ptr - 1);

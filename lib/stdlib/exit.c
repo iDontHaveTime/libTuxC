@@ -36,6 +36,9 @@ void exit(int code){
     }
 
     if(stderr) fflush(stderr); // if flushable
+
+    fcloseall();
+
     cross_exit(code);
 }
 
