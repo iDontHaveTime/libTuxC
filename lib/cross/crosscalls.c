@@ -50,30 +50,70 @@ void cross_free_big(void* ptr, size_t size){
 void* brk_addr = NULL;
 #endif
 
-void* cross_alloc_small(size_t size){
+typedef struct{
+    void* address;
+    size_t size;
+} ReusableMem;
+
+ReusableMem memArr[128];
+size_t reusableMemC = 0;
+
+// ASSUMES CALLER THREAD SAFETY
+void* cross_alloc_small(size_t size, size_t* got){
     #if defined(__linux__) && defined(__x86_64__)
     if(!brk_addr){
         brk_addr = (void*)sys_brk(0);
+    }
+
+    if(reusableMemC > 0){
+        for(size_t i = reusableMemC; i > 0; i--){
+            if(memArr[i-1].size > size){
+                *got = size;
+                void* mem = memArr[i-1].address;
+
+                memArr[i-1].address = (char*)memArr[i-1].address + size;
+                memArr[i-1].size -= size;
+                return mem;
+            }
+            else if(memArr[i-1].size == size){
+                *got = size;
+                void* mem = memArr[i-1].address;
+                for(size_t j = i; j + 1 < reusableMemC; j++){
+                    memArr[j] = memArr[j + 1];
+                }
+                reusableMemC--;
+                return mem;
+            }
+
+        }
     }
     void* start = brk_addr;
     void* goal = (char*)brk_addr + size;
 
     void* got_brk = (void*)sys_brk((uintptr_t)goal);
 
-    if((uintptr_t)got_brk < (uintptr_t)brk_addr){
+    if((uintptr_t)got_brk <= (uintptr_t)brk_addr){
+        *got = 0;
         return NULL;
     }
-
+    *got = got_brk - start;
     brk_addr = got_brk;
     return start;
     
     #endif
+    *got = 0;
     return NULL;
 }
 
 void cross_free_small(void* ptr, size_t size){
     #if defined(__linux__) && defined(__x86_64__)
-    // FUTURE
+    if(size < 16) return;
+    if(reusableMemC < (sizeof(memArr) / sizeof(ReusableMem))){
+        memArr[reusableMemC++] = (ReusableMem){
+            .address = ptr,
+            .size = size,
+        };
+    }
     #endif
 }
 
@@ -82,8 +122,7 @@ void* cross_alloc(size_t size, size_t* allocated){
         return cross_alloc_big(size, allocated);
     }
     // assume 1:1 allocation for now
-    *allocated = size;
-    return cross_alloc_small(size);
+    return cross_alloc_small(size, allocated);
 }
 
 void cross_free(void* ptr, size_t size){

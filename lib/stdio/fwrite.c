@@ -1,3 +1,4 @@
+#include "noncstd/stdiofile.h"
 #include "stdio.h"
 #include "stdint.h"
 #include "string.h"
@@ -12,6 +13,8 @@ size_t fwrite(const void* mem, size_t size, size_t count, FILE* stream){
     if(ferror(stream)) return 0;
 
     cross_lock(&stream->lock);
+
+    char nl = 0;
 
     stream->lastop = __FILE_LAST_OP_WRITE;
 
@@ -32,37 +35,39 @@ size_t fwrite(const void* mem, size_t size, size_t count, FILE* stream){
 
     if(total > bufavail){
         if(bufavail > 0){
-            stream->buff_ptr = mempcpy(stream->buff_ptr, src, bufavail);
+            stream->buff_ptr = mempcpy_c(stream->buff_ptr, src, bufavail, '\n', &nl);
             src += bufavail;
             total -= bufavail;
             written += bufavail;
-            cross_unlock(&stream->lock);
-            if(fflush(stream) == EOF){
+            if(__flush_unlock(stream) == EOF){
+                cross_unlock(&stream->lock);
                 return written / size;
             }
-            cross_lock(&stream->lock);
         }
 
         while(total >= buflen){
-            stream->buff_ptr = mempcpy(stream->buff_start, src, buflen);
+            stream->buff_ptr = mempcpy_c(stream->buff_start, src, buflen, '\n', &nl);
             src += buflen;
             total -= buflen;
             written += buflen;
-            cross_unlock(&stream->lock);
-            if(fflush(stream) == EOF){
+            if(__flush_unlock(stream) == EOF){
+                cross_unlock(&stream->lock);
                 return written / size;
             }
-            cross_lock(&stream->lock);
         }
 
         if(total > 0){
-            stream->buff_ptr = mempcpy(stream->buff_start, src, total);
+            stream->buff_ptr = mempcpy_c(stream->buff_start, src, total, '\n', &nl);
             written += total;
         }
     }
     else{
-        stream->buff_ptr = mempcpy(stream->buff_ptr, src, total);
+        stream->buff_ptr = mempcpy_c(stream->buff_ptr, src, total, '\n', &nl);
         written += total;
+    }
+
+    if(nl && stream->open_mode & __FILE_FLUSH_LINE){
+        __flush_unlock(stream);
     }
     cross_unlock(&stream->lock);
     return written / size;

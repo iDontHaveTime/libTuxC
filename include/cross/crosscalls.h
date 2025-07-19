@@ -15,7 +15,7 @@ void cross_exit(int code);
 void* cross_alloc_big(size_t size, size_t* allocated);
 void cross_free_big(void* ptr, size_t size);
 
-void* cross_alloc_small(size_t size);
+void* cross_alloc_small(size_t size, size_t* got);
 void cross_free_small(void* ptr, size_t size);
 
 void* cross_alloc(size_t size, size_t* allocated);

@@ -17,6 +17,7 @@ int putc(int ch, FILE* f);
 
 int fflush(FILE* fs);
 int __fflush_all(void);
+int __flush_unlock(FILE* fs);
 
 void clearerr(FILE* fs);
 
