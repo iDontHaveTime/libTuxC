@@ -15,6 +15,7 @@ FILE* stdout = &(FILE){
     .last_flushed = 0,
     .read_ptr = stdout_buff,
     .err = 0,
+    .lock = {0},
 };
 
 FILE* stderr = &(FILE){
@@ -28,6 +29,7 @@ FILE* stderr = &(FILE){
     .last_flushed = 0,
     .read_ptr = NULL,
     .err = 0,
+    .lock = {0},
 };
 
 FILE* stdin = &(FILE){
@@ -41,4 +43,5 @@ FILE* stdin = &(FILE){
     .last_flushed = 0,
     .read_ptr = stdin_buff,
     .err = 0,
+    .lock = {0},
 };

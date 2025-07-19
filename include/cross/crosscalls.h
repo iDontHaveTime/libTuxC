@@ -4,6 +4,10 @@
 #include "stddef.h"
 #include "stdint.h"
 
+typedef struct{
+    int val; // 0 unlocked, 1 locked
+} cross_mutex;
+
 int64_t cross_write(unsigned int fd, const char* buff, size_t n); 
 int64_t cross_read(unsigned int fd, char* buff, size_t n);
 void cross_exit(int code);
@@ -24,6 +28,9 @@ void cross_free(void* ptr, size_t size);
 
 int64_t cross_open(const char* name, int open_type);
 void cross_close(int64_t fd);
+
+void cross_lock(cross_mutex* tx);
+void cross_unlock(cross_mutex* tx);
 
 int cross_kill(int pid, int sig);
 int cross_getpid();

@@ -11,6 +11,8 @@ size_t fwrite(const void* mem, size_t size, size_t count, FILE* stream){
 
     if(ferror(stream)) return 0;
 
+    cross_lock(&stream->lock);
+
     stream->lastop = __FILE_LAST_OP_WRITE;
 
     size_t total = size * count;
@@ -23,6 +25,7 @@ size_t fwrite(const void* mem, size_t size, size_t count, FILE* stream){
 
     if(!stream->buff_start){
         int64_t res = cross_write(stream->fd, src, total);
+        cross_unlock(&stream->lock);
         if(res < 0) return 0;
         return res / size;
     }
@@ -33,7 +36,11 @@ size_t fwrite(const void* mem, size_t size, size_t count, FILE* stream){
             src += bufavail;
             total -= bufavail;
             written += bufavail;
-            if(fflush(stream) == EOF) return written / size;
+            cross_unlock(&stream->lock);
+            if(fflush(stream) == EOF){
+                return written / size;
+            }
+            cross_lock(&stream->lock);
         }
 
         while(total >= buflen){
@@ -41,7 +48,11 @@ size_t fwrite(const void* mem, size_t size, size_t count, FILE* stream){
             src += buflen;
             total -= buflen;
             written += buflen;
-            if(fflush(stream) == EOF) return written / size;
+            cross_unlock(&stream->lock);
+            if(fflush(stream) == EOF){
+                return written / size;
+            }
+            cross_lock(&stream->lock);
         }
 
         if(total > 0){
@@ -53,6 +64,6 @@ size_t fwrite(const void* mem, size_t size, size_t count, FILE* stream){
         stream->buff_ptr = mempcpy(stream->buff_ptr, src, total);
         written += total;
     }
-
+    cross_unlock(&stream->lock);
     return written / size;
 }

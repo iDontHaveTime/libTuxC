@@ -30,11 +30,16 @@ size_t fread(void* mem, size_t size, size_t count, FILE* stream){
         return 0;
     }
 
+    cross_lock(&stream->lock);
+
     stream->lastop = __FILE_LAST_OP_READ;
 
     if(stream->buff_start == NULL){
         int64_t br = cross_read(stream->fd, mem, size * count);
-        if(br <= 0) return 0;
+        cross_unlock(&stream->lock);
+        if(br <= 0){
+            return 0;
+        }
         return br / size;
     }
 
@@ -44,6 +49,7 @@ size_t fread(void* mem, size_t size, size_t count, FILE* stream){
     if(stream->buff_ptr == stream->buff_start){
         __advance_buffer_read(stream);
         if(stream->buff_ptr == stream->buff_start){
+            cross_unlock(&stream->lock);
             return 0;
         }
     }
@@ -67,6 +73,6 @@ size_t fread(void* mem, size_t size, size_t count, FILE* stream){
         stream->read_ptr += to_copy;
         bytesread += to_copy;
     }
-
+    cross_unlock(&stream->lock);
     return bytesread / size;
 }

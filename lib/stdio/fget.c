@@ -45,9 +45,13 @@ char* gets(char* buff){
 }
 
 int ungetc(int c, FILE* fs){
+    cross_lock(&fs->lock);
+    int ret = EOF;
     if(fs->buff_ptr != fs->buff_end){
         *fs->buff_ptr = (unsigned char)c;
-        return (unsigned char)c;
+        fs->buff_ptr++;
+        ret = (unsigned char)c;
     }
-    return EOF;
+    cross_unlock(&fs->lock);
+    return ret;
 }

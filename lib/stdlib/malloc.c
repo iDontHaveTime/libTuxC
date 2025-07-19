@@ -5,6 +5,8 @@
 #include "stdio.h"
 #include "string.h"
 
+static cross_mutex malloc_lock = {0};
+
 typedef struct{
     size_t size;
     size_t user_request;
@@ -12,6 +14,7 @@ typedef struct{
 
 void* aligned_malloc(size_t align, size_t size){
     if(size == 0 || align == 0) return NULL;
+    cross_lock(&malloc_lock);
     if(align < sizeof(size_t)){
         align = sizeof(size_t); // little more never hurts anyone
     }
@@ -24,6 +27,7 @@ void* aligned_malloc(size_t align, size_t size){
     void* raw = cross_alloc(request, &got);
 
     if(!raw){
+        cross_unlock(&malloc_lock);
         return NULL;
     }
 
@@ -35,6 +39,7 @@ void* aligned_malloc(size_t align, size_t size){
     header->size = got;
     header->user_request = got - ((uintptr_t)user_ptr - (uintptr_t)raw);
 
+    cross_unlock(&malloc_lock);
     return user_ptr;
 }
 
@@ -49,18 +54,27 @@ MallocPointer* __get_malloc_ptr(void* ptr){
 void* realloc(void* mem, size_t newSize){
     if(!mem) return malloc(newSize);
 
+    cross_lock(&malloc_lock);
+
     if(newSize == 0){
+        cross_unlock(&malloc_lock);
         free(mem);
         return NULL;
     }
 
     MallocPointer* ptr = __get_malloc_ptr(mem);
-    if(newSize <= ptr->user_request) return mem;
 
+    if(newSize <= ptr->user_request){
+        cross_unlock(&malloc_lock);
+        return mem;
+    }
+
+    cross_unlock(&malloc_lock);
     void* newMem = malloc(newSize);
     if(!newMem){
         return NULL;
     }
+    
     memcpy(newMem, mem, (newSize < ptr->user_request) ? newSize : ptr->user_request);
     free(mem);
     return newMem;
@@ -78,6 +92,8 @@ size_t _tuxc_malloc_fullsize(void* ptr){
 
 void free(void* ptr){
     if(!ptr) return;
+    cross_lock(&malloc_lock);
     MallocPointer* rptr = __get_malloc_ptr(ptr);
     cross_free(rptr, rptr->size);
+    cross_unlock(&malloc_lock);
 }

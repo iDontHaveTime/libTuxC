@@ -2,7 +2,9 @@
 #include "stdio.h"
 
 void clearerr(FILE* fs){
+    cross_lock(&fs->lock);
     fs->err = 0;
+    cross_unlock(&fs->lock);
 }
 
 int ferror(FILE* fs){

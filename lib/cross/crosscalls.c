@@ -154,3 +154,43 @@ int cross_getpid(){
     #endif
     return -1;
 }
+
+void cross_unlock(cross_mutex* tx){
+    tx->val = 0;
+    #if defined(__linux__)
+
+    #if defined(__x86_64__)
+    sys_futex(&tx->val, FUTEX_WAKE, 1, NULL, NULL, 0);
+    #endif
+
+    #endif
+}
+
+void cross_lock(cross_mutex* tx){
+    #if defined(__linux__)
+
+    #if defined(__x86_64__)
+
+    while(1){
+        int prev;
+        int old = 0;
+        int new = 1;
+        int* ptr = &tx->val;
+        __asm__ volatile (
+            "lock cmpxchg %2, %1"
+            : "=a"(prev), "+m"(*ptr)
+            : "r"(new), "0"(old)
+            : "memory"
+        );
+
+        if(prev == 0){
+            return;
+        }
+
+        sys_futex(&tx->val, FUTEX_WAIT, 1, NULL, NULL, 0);
+    }
+
+    #endif
+
+    #endif
+}

@@ -1,6 +1,7 @@
 #ifndef STDIOFILE_H
 #define STDIOFILE_H
 
+#include "cross/crosscalls.h"
 #include "stddef.h"
 
 #define BUFSIZ 4096
@@ -36,6 +37,7 @@ typedef struct{
     unsigned int fd;
     int open_mode;
     int lastop;
+    cross_mutex lock;
     short err;
     char flushed;
     char last_flushed;

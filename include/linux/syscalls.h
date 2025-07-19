@@ -270,6 +270,23 @@ static inline int64_t sys_pid(){
     return syscall0(39);
 }
 
+#define FUTEX_WAIT 0
+#define FUTEX_WAKE 1
+#define FUTEX_FD 2
+#define FUTEX_REQUEUE 3
+#define FUTEX_CMP_REQUEUE 4
+#define FUTEX_WAKE_OP 5
+
+struct timespec{
+    long tv_sec;
+    long tv_nsec;
+};
+
+static inline int64_t sys_futex(int *uaddr, int futex_op, int val, const struct timespec *timeout, int *uaddr2, int val3){
+    return syscall6(202, (uint64_t)uaddr, (uint64_t)futex_op, (uint64_t)val,
+                    (uint64_t)timeout, (uint64_t)uaddr2, (uint64_t)val3);
+}
+
 #ifdef __cplusplus
 }
 #endif
