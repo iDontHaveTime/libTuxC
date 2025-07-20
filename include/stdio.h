@@ -43,6 +43,9 @@ int getchar(void);
 
 int ungetc(int c, FILE* fs);
 
+int setvbuf(FILE* fs, char* buff, int mode, size_t size);
+void setbuf(FILE* fs, char* buff);
+
 #define fputc putc
 #define getc fgetc
 

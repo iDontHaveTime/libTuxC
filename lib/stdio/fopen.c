@@ -114,7 +114,7 @@ FILE* fopen(const char* fileName, const char* mode){
     f->lock.val = 0;
     f->buff_start = (char*)((FILE*)f + 1);
     f->buff_ptr = f->buff_start;
-    f->buff_end = f->buff_start + (BUFSIZ-1);
+    f->buff_end = f->buff_start + BUFSIZ;
     f->lastop = __FILE_LAST_OP_NONE;
     f->open_mode = fopenmode;
     f->last_flushed = 0;
