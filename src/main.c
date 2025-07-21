@@ -16,5 +16,7 @@ int main(int argc, char* argv[]){
 
     free(buff);
 
+    if(argc > 0) puts(argv[0]);
+
     return 0;
 }
