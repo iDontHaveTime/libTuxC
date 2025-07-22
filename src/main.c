@@ -5,18 +5,11 @@
 int main(int argc, char* argv[]){
     char* buff = malloc(512);
 
-    fputs("Input: ", stdout);
-    fflush(stdout);
-    fgets(buff, 512, stdin);
+    memcpy(buff, "Hello", strlen("Hello") + 1);
 
-    fputs("Your message: ", stdout);
-
-    buff[strlen(buff) - 1] = '\0'; // replace \n to \0
     puts(buff);
 
     free(buff);
-
-    if(argc > 0) puts(argv[0]);
 
     return 0;
 }
