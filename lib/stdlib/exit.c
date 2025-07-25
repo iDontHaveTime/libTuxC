@@ -28,7 +28,7 @@ int atexit(void (*f)(void)){
     return 0;
 }
 
-void exit(int code){
+noreturn void exit(int code){
     call_atexit_funcs();
 
     if(stdout){
@@ -49,11 +49,11 @@ void exit(int code){
     cross_exit(code);
 }
 
-void _exit(int code){
+noreturn void _exit(int code){
     cross_exit(code);
 }
 
-void abort(void){
+noreturn void abort(void){
     cross_kill(cross_getpid(), CROSS_ABORT);
     _exit(1);
 }

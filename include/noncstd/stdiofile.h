@@ -1,6 +1,10 @@
 #ifndef STDIOFILE_H
 #define STDIOFILE_H
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 #include "cross/crosscalls.h"
 #include "stddef.h"
 
@@ -50,5 +54,9 @@ extern FILE* stdin;
 #define stdin stdin
 #define stdout stdout
 #define stderr stderr
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // STDIOFILE_H

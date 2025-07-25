@@ -7,6 +7,7 @@ extern "C"{
 
 #include "stddef.h"
 #include "stdint.h"
+#include "stdnoreturn.h"
 
 static inline int64_t syscall0(uint64_t n){
     int64_t ret;
@@ -163,8 +164,9 @@ static inline int64_t dynamicSyscall(uint64_t sysnum, int argc,
 #define ERANGE 34 // Math result not representable
 
 
-static inline void sys_exit(long long code){
+noreturn static inline void sys_exit(long long code){
     syscall1(60, code);
+    __builtin_unreachable();
 }
 
 static inline int64_t sys_write(unsigned long long fd, const char* buff, size_t count){

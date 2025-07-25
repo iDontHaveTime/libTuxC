@@ -1,8 +1,19 @@
 #ifndef STDIO_H
 #define STDIO_H
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 #include "noncstd/stdiofile.h"
 #include "stddef.h"
+#include "stdarg.h"
+
+#if defined(__GNUC__) || defined(__clang__)
+#define __fmt__func__(x, y) __attribute__((format(printf, x, y)))
+#else
+#define __fmt__func__(x, y)
+#endif  
 
 #define EOF (-1)
 #define L_tmpnam 64
@@ -12,13 +23,16 @@
 #define SEEK_CUR 1
 #define SEEK_END 2
 
+#define TUXC_UNKNOWN_ENDIAN 0
 #define TUXC_BIG_ENDIAN 1
 #define TUXC_LITTLE_ENDIAN 2
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #define __tuxc_endian TUXC_LITTLE_ENDIAN
-#else
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define __tuxc_endian TUXC_BIG_ENDIAN
+#else
+#define __tuxc_endian TUXC_UNKNOWN_ENDIAN
 #endif
 
 int putchar(int ch);
@@ -55,7 +69,24 @@ int ungetc(int c, FILE* fs);
 int setvbuf(FILE* fs, char* buff, int mode, size_t size);
 void setbuf(FILE* fs, char* buff);
 
+void perror(const char* str);
+
+int printf(const char* fmt, ...) __fmt__func__(1, 2);
+int sprintf(char* str, const char* fmt, ...) __fmt__func__(2, 3);
+int snprintf(char* str, size_t max, const char* fmt, ...) __fmt__func__(3, 4);
+
+int fprintf(FILE* fs, const char* fmt, ...) __fmt__func__(2, 3);
+
+int vsprintf(char* str, const char* fmt, va_list args);
+int vsnprintf(char* str, size_t max, const char* fmt, va_list args);
+int vfprintf(FILE* fs, const char* fmt, va_list args);
+int vprintf(const char* fmt, va_list args);
+
 #define fputc putc
 #define getc fgetc
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // STDIO_H

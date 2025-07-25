@@ -1,11 +1,27 @@
 #ifndef STDINT_H
 #define STDINT_H
 
-#define INT8_MIN -128
-#define INT8_MAX 127
+#ifdef __cplusplus
+extern "C"{
+#endif
 
+#define INT8_MIN (-128)
+#define INT8_MAX 127
 #define UINT8_MAX 255
 
+#define INT16_MIN (-32768)
+#define INT16_MAX 32767
+#define UINT16_MAX 65535
+
+#define INT32_MIN (-2147483647 - 1)
+#define INT32_MAX 2147483647
+#define UINT32_MAX 4294967295U
+
+#define INT64_MIN (-9223372036854775807LL - 1)
+#define INT64_MAX 9223372036854775807LL
+#define UINT64_MAX 18446744073709551615ULL
+
+#define FORCE_STDINT_TYPE
 #ifndef FORCE_STDINT_TYPE
 
 typedef unsigned char uint8_t;
@@ -46,21 +62,30 @@ typedef __INT64_TYPE__ int64_t;
 
 #endif
 
-#if defined(_WIN64)
+#if __SIZEOF_POINTER__ == 8
 typedef uint64_t uintptr_t;
 typedef int64_t intptr_t;
-#elif defined(_WIN32)
+#elif __SIZEOF_POINTER__ == 4
 typedef uint32_t uintptr_t;
 typedef int32_t intptr_t;
-#elif defined(__x86_64__)
-typedef uint64_t uintptr_t;
-typedef int64_t intptr_t;
+#elif __SIZEOF_POINTER__ == 2
+typedef uint16_t uintptr_t;
+typedef int16_t intptr_t;
+#endif
+
+#ifdef __SIZEOF_INT128__
+typedef __uint128_t uint128_t;
+typedef __int128_t int128_t;
 #else
-typedef uint32_t uintptr_t;
-typedef int32_t intptr_t;
+typedef uint64_t uint128_t;
+typedef int64_t int128_t;
 #endif
 
 typedef long long intmax_t;
 typedef unsigned long long uintmax_t;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // STDINT_H

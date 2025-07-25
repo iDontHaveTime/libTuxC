@@ -1,8 +1,13 @@
 #ifndef CROSSCALLS_H
 #define CROSSCALLS_H
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 #include "stddef.h"
 #include "stdint.h"
+#include "stdnoreturn.h"
 
 typedef struct{
     int val; // 0 unlocked, 1 locked
@@ -10,7 +15,7 @@ typedef struct{
 
 int64_t cross_write(unsigned int fd, const char* buff, size_t n); 
 int64_t cross_read(unsigned int fd, char* buff, size_t n);
-void cross_exit(int code);
+noreturn void cross_exit(int code);
 
 void* cross_alloc_big(size_t size, size_t* allocated);
 void cross_free_big(void* ptr, size_t size);
@@ -36,5 +41,12 @@ int cross_kill(int pid, int sig);
 int cross_getpid();
 
 extern const int CROSS_ABORT;
+
+#define MINIMUM_BIG_ALLOC 4096
+#define MINIMUM_BIG_ALLOC_THRESHOLD (MINIMUM_BIG_ALLOC * 3 / 4)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // CROSSCALLS_H

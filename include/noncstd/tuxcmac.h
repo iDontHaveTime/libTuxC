@@ -1,11 +1,29 @@
 #ifndef TUXCMAC_H
 #define TUXCMAC_H
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 #if defined(__GNUC__) || defined(__clang__)
 #define __port_attr(x) __attribute__(x)
 #else
 #define __port_attr(x)
 #endif  
+
+#if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 199409L
+    #define __TUXC_C89
+#elif __STDC_VERSION__ == 199409L
+    #define __TUXC_C95
+#elif __STDC_VERSION__ == 199901L
+    #define __TUXC_C99
+#elif __STDC_VERSION__ == 201112L
+    #define __TUXC_C11
+#elif __STDC_VERSION__ == 201710L
+    #define __TUXC_C17
+#else
+    #define __TUXC_C_UNKNOWN
+#endif
 
 #if defined(__linux__) && defined(__x86_64__)
 
@@ -40,6 +58,10 @@
 
 #define TUXC_HIDDEN_PTR_SIZE 8
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif // TUXCMAC_H

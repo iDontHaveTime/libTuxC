@@ -1,6 +1,7 @@
 #include "cross/stkcgen.h"
 #include "stdlib.h"
 #include "stdint.h"
+#include "stdnoreturn.h"
 
 extern int main(int, char**);
 
@@ -51,8 +52,6 @@ __attribute__((naked)) void _start(uintptr_t argc, char** argv){
     );
 }
 
-void __attribute__((noreturn)) __stack_chk_fail(void){
-
+noreturn void  __stack_chk_fail(void){
     exit(1);
-    for(;;){}
 }

@@ -1,6 +1,7 @@
 #include "cross/crosscalls.h"
 #include "stddef.h"
 #include "stdint.h"
+#include "errno.h"
 
 #if defined(__linux__) && defined(__x86_64__)
 #include "linux/syscalls.h"
@@ -8,17 +9,31 @@
 
 int64_t cross_write(unsigned int fd, const char* buff, size_t n){
     #if defined(__linux__) && defined(__x86_64__)
-    return sys_write(fd, buff, n); 
+    int64_t ret = sys_write(fd, buff, n);
+    if(ret < 0){
+        errno = (int)(-ret);
+        return -1;
+    }
+    return ret;
+    #else
+    return -1;
     #endif
 }
 
 int64_t cross_read(unsigned int fd, char* buff, size_t n){
     #if defined(__linux__) && defined(__x86_64__)
-    return sys_read(fd, buff, n);
+    int64_t ret = sys_read(fd, buff, n);
+    if(ret < 0){
+        errno = (int)(-ret);
+        return -1;
+    }
+    return ret;
+    #else
+    return -1;
     #endif
 }
 
-void cross_exit(int code){
+noreturn void cross_exit(int code){
     #if defined(__linux__) && defined(__x86_64__)
     sys_exit((long long)code);
     #endif
@@ -106,7 +121,14 @@ void* cross_alloc_small(size_t size, size_t* got){
 }
 
 void cross_free_small(void* ptr, size_t size){
+    if(size >= MINIMUM_BIG_ALLOC_THRESHOLD){
+        return;
+    }
     #if defined(__linux__) && defined(__x86_64__)
+    if(brk_addr - size == ptr){
+        sys_brk((uintptr_t)ptr);
+        return;
+    }
     if(size < 16) return;
     if(reusableMemC < (sizeof(memArr) / sizeof(ReusableMem))){
         memArr[reusableMemC++] = (ReusableMem){
@@ -118,15 +140,14 @@ void cross_free_small(void* ptr, size_t size){
 }
 
 void* cross_alloc(size_t size, size_t* allocated){
-    if(size >= MMAP_SIZE_MINIMUM){
+    if(size >= MINIMUM_BIG_ALLOC_THRESHOLD){
         return cross_alloc_big(size, allocated);
     }
-    // assume 1:1 allocation for now
     return cross_alloc_small(size, allocated);
 }
 
 void cross_free(void* ptr, size_t size){
-    if(size >= MMAP_SIZE_MINIMUM){
+    if(size >= MINIMUM_BIG_ALLOC_THRESHOLD){
         cross_free_big(ptr, size);
     }
     else{
@@ -162,9 +183,15 @@ int64_t cross_open(const char* name, int open_type){
         modeType = OPEN_MODE_IRUSR | OPEN_MODE_IWUSR | OPEN_MODE_IRGRP | OPEN_MODE_IROTH;
     }
 
-    return sys_open(name, openType, modeType);
-    #endif
+    int64_t ret = sys_open(name, openType, modeType);
+    if(ret < 0){
+        errno = (int)(-ret);
+        return -1;
+    }
+    return ret;
+    #else
     return -1;
+    #endif
 }
 
 #if defined(__linux__) && defined(__x86_64__)
@@ -175,23 +202,37 @@ const int CROSS_ABORT = 0;
 
 void cross_close(int64_t fd){
     #if defined(__linux__) && defined(__x86_64__)
-
-    sys_close(fd);
+    int64_t ret = sys_close(fd);
+    if(ret < 0){
+        errno = (int)(-ret);
+    }
     #endif
 }
 
 int cross_kill(int pid, int sig){
     #if defined(__linux__) && defined(__x86_64__)
-    return sys_kill(pid, sig);
-    #endif
+    int ret = sys_kill(pid, sig);
+    if(ret < 0){
+        errno = (int)(-ret);
+        return -1;
+    }
+    return ret;
+    #else
     return -1;
+    #endif
 }
 
 int cross_getpid(){
     #if defined(__linux__) && defined(__x86_64__)
-    return sys_pid();
-    #endif
+    int ret = sys_pid();
+    if(ret < 0){
+        errno = (int)(-ret);
+        return -1;
+    }
+    return ret;
+    #else
     return -1;
+    #endif
 }
 
 void cross_unlock(cross_mutex* tx){

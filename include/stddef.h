@@ -12,10 +12,12 @@ typedef signed long long ptrdiff_t;
 typedef unsigned long size_t;
 typedef signed long ptrdiff_t;
 #endif
+#ifndef __cplusplus
 #ifdef _WIN32
 typedef short wchar_t;
 #else
 typedef int wchar_t;
+#endif
 #endif
 
 #define NULL ((void*)0)

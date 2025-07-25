@@ -18,10 +18,11 @@ void* aligned_malloc(size_t align, size_t size){
     if(align < sizeof(void*)){
         align = sizeof(void*); // little more never hurts anyone
     }
-    if(align & 1){
-        align++;
+    if((align & (align - 1)) != 0){
+        cross_unlock(&malloc_lock);
+        return NULL; // align must be power of 2
     }
-    size_t request = size + sizeof(MallocPointer) + align;
+    size_t request = size + align - 1 + sizeof(MallocPointer);
 
     size_t got;
     void* raw = cross_alloc(request, &got);
