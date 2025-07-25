@@ -10,6 +10,8 @@ int main(int argc, char* argv[]){
     puts(buff);
 
     free(buff);
+    
+    putchar(__tuxc_endian + '0');
 
     return 0;
 }

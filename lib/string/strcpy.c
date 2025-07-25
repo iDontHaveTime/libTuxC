@@ -6,15 +6,8 @@ char* strcpy(char* dest, const char* src){
     if(!src) return dest;
     char* original_dest = dest;
 
-    while(*src != '\0'){
-        *dest = *src;
-        dest++;
-        src++;
-    }
-
-    *dest = '\0';
-
-    return original_dest;
+    while((*dest++ = *src++));
+    return dest;
 }
 
 char* strncpy(char* dest, const char* src, size_t n){

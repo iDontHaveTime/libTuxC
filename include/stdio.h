@@ -12,6 +12,15 @@
 #define SEEK_CUR 1
 #define SEEK_END 2
 
+#define TUXC_BIG_ENDIAN 1
+#define TUXC_LITTLE_ENDIAN 2
+
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define __tuxc_endian TUXC_LITTLE_ENDIAN
+#else
+#define __tuxc_endian TUXC_BIG_ENDIAN
+#endif
+
 int putchar(int ch);
 int putc(int ch, FILE* f);
 

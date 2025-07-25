@@ -15,8 +15,8 @@ typedef struct{
 void* aligned_malloc(size_t align, size_t size){
     if(size == 0 || align == 0) return NULL;
     cross_lock(&malloc_lock);
-    if(align < sizeof(size_t)){
-        align = sizeof(size_t); // little more never hurts anyone
+    if(align < sizeof(void*)){
+        align = sizeof(void*); // little more never hurts anyone
     }
     if(align & 1){
         align++;
