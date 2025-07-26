@@ -15,6 +15,8 @@ extern "C"{
 #define __fmt__func__(x, y)
 #endif  
 
+#define __PRINTF_BUFFER_SIZE__ 512
+
 #define EOF (-1)
 #define L_tmpnam 64
 #define TMP_MAX 9999
@@ -72,15 +74,16 @@ void setbuf(FILE* fs, char* buff);
 void perror(const char* str);
 
 int printf(const char* fmt, ...) __fmt__func__(1, 2);
+int vprintf(const char* fmt, va_list args);
+
 int sprintf(char* str, const char* fmt, ...) __fmt__func__(2, 3);
+int vsprintf(char* str, const char* fmt, va_list args);
+
 int snprintf(char* str, size_t max, const char* fmt, ...) __fmt__func__(3, 4);
+int vsnprintf(char* str, size_t max, const char* fmt, va_list args);
 
 int fprintf(FILE* fs, const char* fmt, ...) __fmt__func__(2, 3);
-
-int vsprintf(char* str, const char* fmt, va_list args);
-int vsnprintf(char* str, size_t max, const char* fmt, va_list args);
 int vfprintf(FILE* fs, const char* fmt, va_list args);
-int vprintf(const char* fmt, va_list args);
 
 #define fputc putc
 #define getc fgetc

@@ -118,7 +118,6 @@ FILE* fopen(const char* fileName, const char* mode){
     f->lastop = __FILE_LAST_OP_NONE;
     f->open_mode = fopenmode;
     f->last_flushed = 0;
-    f->flushed = 0;
     f->fd = fd;
     f->err = 0;
     f->read_ptr = f->buff_start;

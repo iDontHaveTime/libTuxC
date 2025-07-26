@@ -15,7 +15,7 @@ size_t strlen(const char* str){
     uintptr_t addr = (uintptr_t)str;
     uint16_t alignment = __tuxc_align_lookup8[addr & 0x7];
 
-    alignment = alignment == 8 ? (sizeof(void*) >= 8 ? 8 : 4) : alignment;
+    alignment = alignment > sizeof(void*) ? sizeof(void*) : alignment;
 
     switch(alignment){
         case 1:

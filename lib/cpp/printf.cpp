@@ -256,6 +256,13 @@ struct FMTSTR{
         }
     }
 
+    inline bool addpadding(char p, size_t pad){
+        while(pad--){
+            if(out->addchar(p)) return true;
+        }
+        return false;
+    }
+
     inline bool handle_str(va_list ls){
         size_t len = 0;
         const void* s = nullptr;
@@ -291,10 +298,7 @@ struct FMTSTR{
         }
 
         if(len < width && !(flags & LEFT_JUSTIFY)){
-            size_t pad = width - len;
-            while(pad--){
-                if(out->addchar(' ')) return true;
-            }
+            addpadding(' ', width - len);
         }
 
         if(length == l_l){
@@ -309,12 +313,32 @@ struct FMTSTR{
         }
 
         if(len < width && (flags & LEFT_JUSTIFY)){
-            size_t pad = width - len;
-            while(pad--){
-                if(out->addchar(' ')) return true;
+            addpadding(' ', width - len);
+        }
+
+        return false;
+    }
+
+    inline bool handle_char(va_list ls){
+
+        if(width > 1 && !(flags & LEFT_JUSTIFY)){
+            addpadding(' ', width - 1);
+        }
+
+        int c = va_arg(ls, int);
+
+        if(length == l_l){
+            wchar_to_str((const wchar_t*)&c, 1);
+        }
+        else{
+            if(out->addchar(c)){
+                return true;
             }
         }
 
+        if(width > 1 && (flags & LEFT_JUSTIFY)){
+            addpadding(' ', width - 1);
+        }
         return false;
     }
 
@@ -325,6 +349,8 @@ struct FMTSTR{
                 return false;
             case 's':
                 return handle_str(ls);
+            case 'c':
+                return handle_char(ls);
             default:
                 return true;
         }
@@ -375,7 +401,7 @@ extern "C"{
 
 
 int vsnprintf(char* str, size_t max, const char* fmt, va_list args){
-    char buff[512];
+    char buff[__PRINTF_BUFFER_SIZE__];
     FMTOUT pf = vsprintf_engine(buff, sizeof(buff), fmt, args);
     if(!pf){
         if(pf.allocbuff) free(pf.allocbuff);
@@ -399,7 +425,7 @@ int vsnprintf(char* str, size_t max, const char* fmt, va_list args){
 }
 
 int vsprintf(char* str, const char* fmt, va_list args){
-    char buff[512];
+    char buff[__PRINTF_BUFFER_SIZE__];
     FMTOUT pf = vsprintf_engine(buff, sizeof(buff), fmt, args);
     if(!pf){
         if(pf.allocbuff) free(pf.allocbuff);
@@ -417,7 +443,7 @@ int vsprintf(char* str, const char* fmt, va_list args){
 }
 
 int vfprintf(FILE* fs, const char* fmt, va_list args){
-    char buff[512];
+    char buff[__PRINTF_BUFFER_SIZE__];
     FMTOUT pf = vsprintf_engine(buff, sizeof(buff), fmt, args);
     if(!pf){
         if(pf.allocbuff) free(pf.allocbuff);

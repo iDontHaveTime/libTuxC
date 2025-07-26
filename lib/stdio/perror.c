@@ -6,9 +6,9 @@
 void perror(const char* str){
     const char* msg = strerror(errno);
     if(str && *str){
-        fputs(str, stderr);
-        fputs(": ", stderr);
+        fprintf(stderr, "%s: %s\n", str, msg);
     }
-    fputs(msg, stderr);
-    fputc('\n', stderr);
+    else{
+        fprintf(stderr, "%s\n", msg);
+    }
 }

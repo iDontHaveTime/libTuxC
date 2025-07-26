@@ -43,7 +43,6 @@ typedef struct{
     int lastop;
     cross_mutex lock;
     short err;
-    char flushed;
     char last_flushed;
 } FILE;
 

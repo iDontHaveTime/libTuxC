@@ -25,7 +25,6 @@ int __flush_unlock(FILE* fs){
         fs->err |= __FILE_ERR_EOF;
         return EOF;
     }
-    fs->flushed = 1;
     fs->buff_ptr = fs->buff_start;
     return 0;
 }
