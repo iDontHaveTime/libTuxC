@@ -9,6 +9,10 @@ extern "C"{
 #include "stddef.h"
 #include "stdarg.h"
 
+typedef struct{
+    long long pos;
+} fpos_t;
+
 #if defined(__GNUC__) || defined(__clang__)
 #define __fmt__func__(x, y) __attribute__((format(printf, x, y)))
 #else

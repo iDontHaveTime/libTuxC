@@ -6,6 +6,15 @@ void* memcpy(void* dest, const void* src, size_t n){
     if(!src) return dest;
     if(n == 0) return dest;
 
+    if(n < sizeof(void*)){
+        char* d = dest;
+        const char* s = src;
+        while(n--){
+            *d++ = *s++;
+        }
+        return dest;
+    }
+
     #if defined(__x86_64__) || defined(__i386__)
 
     short dest_a = __tuxc_getalignment8(dest);

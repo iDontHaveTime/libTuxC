@@ -1,10 +1,38 @@
 #include "cross/crosscalls.h"
 #include "stdlib.h"
 #include "stdio.h"
+#include "runtime.h"
+
+static cross_mutex exit_lock = {0};
 
 typedef void (*void_func_ptr)(void);
 
-static cross_mutex exit_lock = {0};
+static cxa_atexit_entry_t cxa_atexit_funcs[MAX_CXA_ATEXIT_FUNCS];
+static size_t cxa_atexit_count = 0;
+
+int __cxa_atexit(void (*func)(void*), void* arg, void* dso_handle){
+    cross_lock(&exit_lock);
+    if(cxa_atexit_count >= MAX_CXA_ATEXIT_FUNCS){
+        cross_unlock(&exit_lock);
+        return -1;
+    }
+    cxa_atexit_funcs[cxa_atexit_count].func = func;
+    cxa_atexit_funcs[cxa_atexit_count].arg = arg;
+    cxa_atexit_funcs[cxa_atexit_count].dso_handle = dso_handle;
+    cxa_atexit_count++;
+    cross_unlock(&exit_lock);
+    return 0;
+}
+
+void run_cxa_atexit_destructors(void){
+    cross_lock(&exit_lock);
+    for(size_t i = cxa_atexit_count; i > 0; i--){
+        cxa_atexit_funcs[i - 1].func(cxa_atexit_funcs[i - 1].arg);
+    }
+    cxa_atexit_count = 0;
+    cross_unlock(&exit_lock);
+}
+
 
 void_func_ptr fptrs[ATEXIT_MAX];
 size_t fptr_cur = 0;
@@ -28,8 +56,17 @@ int atexit(void (*f)(void)){
     return 0;
 }
 
+void run_destructors(void){
+    if(!__fini_array_start || !__fini_array_end) return;
+    for(ctor_t* dtor = __fini_array_start; dtor < __fini_array_end; dtor++){
+        (*dtor)();
+    }
+}
+
 noreturn void exit(int code){
+    run_cxa_atexit_destructors();
     call_atexit_funcs();
+    run_destructors();
 
     if(stdout){
         if(fflush(stdout) == EOF){
@@ -46,7 +83,7 @@ noreturn void exit(int code){
 
     fcloseall();
 
-    cross_exit(code);
+    _exit(code);
 }
 
 noreturn void _exit(int code){

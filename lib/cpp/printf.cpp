@@ -351,6 +351,9 @@ struct FMTSTR{
                 return handle_str(ls);
             case 'c':
                 return handle_char(ls);
+            case 'n':
+                *(int*)va_arg(ls, int*) = out->l;
+                return false;
             default:
                 return true;
         }

@@ -7,6 +7,7 @@ extern "C"{
 
 // TODO: tls
 extern int errno;
+typedef int errno_t;
 
 #define EPERM 1
 #define ENOENT 2

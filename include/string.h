@@ -12,11 +12,16 @@ const char* strerror(int errnum);
 extern short __tuxc_align_lookup8[8];
 #define __tuxc_getalignment8(n) (__tuxc_align_lookup8[(size_t)n & 0x7])
 
+size_t strnlen(const char* str, size_t max);
 size_t strlen(const char* str);
+
+char* strdup(const char* str);
+char* strndup(const char* str, size_t max);
+
 void* memcpy(void* dest, const void* src, size_t n);
 void* mempcpy(void* dest, const void* src, size_t n);
 
-// returns 1 to found if c is found
+// sets found to 1 if found c while copying
 void* memcpy_c(void* dest, const void* src, size_t n, char c, char* found);
 void* mempcpy_c(void* dest, const void* src, size_t n, char c, char* found);
 

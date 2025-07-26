@@ -63,12 +63,27 @@ typedef __INT64_TYPE__ int64_t;
 #endif
 
 #if __SIZEOF_POINTER__ == 8
+
+#define INTPTR_MIN INT64_MIN
+#define INTPTR_MAX INT64_MAX
+#define UINTPTR_MAX UINT64_MAX
+
 typedef uint64_t uintptr_t;
 typedef int64_t intptr_t;
 #elif __SIZEOF_POINTER__ == 4
+
+#define INTPTR_MIN INT32_MIN
+#define INTPTR_MAX INT32_MAX
+#define UINTPTR_MAX UINT32_MAX
+
 typedef uint32_t uintptr_t;
 typedef int32_t intptr_t;
 #elif __SIZEOF_POINTER__ == 2
+
+#define INTPTR_MIN INT16_MIN
+#define INTPTR_MAX INT16_MAX
+#define UINTPTR_MAX UINT16_MAX
+
 typedef uint16_t uintptr_t;
 typedef int16_t intptr_t;
 #endif
@@ -79,6 +94,16 @@ typedef __int128_t int128_t;
 #else
 typedef uint64_t uint128_t;
 typedef int64_t int128_t;
+#endif
+
+#ifndef __cplusplus
+#ifdef _WIN32
+#define WCHAR_MIN INT16_MIN
+#define WCHAR_MAX INT16_MAX
+#else
+#define WCHAR_MIN INT32_MIN
+#define WCHAR_MAX INT32_MAX
+#endif
 #endif
 
 typedef long long intmax_t;

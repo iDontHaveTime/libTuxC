@@ -1,7 +1,7 @@
 #ifndef STDBOOL_H
 #define STDBOOL_H
 
-#define __bool_true_false_are_defined
+#define __bool_true_false_are_defined 1
 #ifndef __cplusplus
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 202311L)
 

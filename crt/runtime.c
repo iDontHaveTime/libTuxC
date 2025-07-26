@@ -1,6 +1,7 @@
 #include "cross/stkcgen.h"
 #include "stdlib.h"
 #include "stdint.h"
+#include "runtime.h"
 #include "stdnoreturn.h"
 
 extern int main(int, char**);
@@ -9,8 +10,36 @@ uintptr_t __stack_chk_guard = 0xDEADBEEF;
 void* main_ptr = &main; // let clang handle PIC
 void* exit_ptr = &exit;
 
+void run_array(void (**start)(void), void (**end)(void)){
+    for(void (**func)(void) = start; func < end; func++){
+        (*func)();
+    }
+}
+
+void run_constructors(void){
+    if(__preinit_array_start && __preinit_array_end){
+        run_array(__preinit_array_start, __preinit_array_end);
+    }
+    if(__init_array_start && __init_array_end){
+        run_array(__init_array_start, __init_array_end);
+    }
+}
+
+int __cxa_guard_acquire(uint64_t* guard){
+    return !*(char*)guard;
+}
+
+void __cxa_guard_release(uint64_t* guard){
+    *(char*)guard = 1;
+}
+
+void __cxa_guard_abort(uint64_t* guard){
+    // nop
+}
+
 void __set_schk(){
     __stack_chk_guard = __stack_chk_guard_gen();
+    run_constructors();
 }
 
 __attribute__((naked)) void _start(uintptr_t argc, char** argv){

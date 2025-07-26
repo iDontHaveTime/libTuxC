@@ -10,8 +10,13 @@ uint16_t get_alignment(void* ptr){
 }
 
 size_t strlen(const char* str){
+    return strnlen(str, UINTPTR_MAX);
+}
+
+size_t strnlen(const char* str, size_t max){
     if(!str) return 0;
     const char* original_str = str;
+    const char* end = str + max;
     uintptr_t addr = (uintptr_t)str;
     uint16_t alignment = __tuxc_align_lookup8[addr & 0x7];
 
@@ -19,7 +24,12 @@ size_t strlen(const char* str){
 
     switch(alignment){
         case 1:
-            while(*str) str++;
+            while(*str){
+                str++;
+                if(str >= end){
+                    return max;
+                }
+            }
             break;
         case 2:
             while(1){
@@ -41,6 +51,9 @@ size_t strlen(const char* str){
                     }
                 }
                 str += 2;
+                if(str >= end){
+                    return max;
+                }
             }
             break;
         case 4:
@@ -79,6 +92,9 @@ size_t strlen(const char* str){
                     }
                 }
                 str += 4;
+                if(str >= end){
+                    return max;
+                }
             }
             break;
         case 8:
@@ -149,6 +165,9 @@ size_t strlen(const char* str){
                     }
                 }
                 str += 8;
+                if(str >= end){
+                    return max;
+                }
             }
             break;
     }
