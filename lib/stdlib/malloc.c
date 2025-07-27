@@ -91,6 +91,15 @@ size_t _tuxc_malloc_fullsize(void* ptr){
     return __get_malloc_ptr(ptr)->size;
 }
 
+void* calloc(size_t num, size_t size){
+    size_t total = size * num;
+    if(total == 0) return 0;
+    void* ptr = malloc(total);
+    if(!ptr) return NULL;
+    memset(ptr, 0, total);
+    return ptr;
+}
+
 void free(void* ptr){
     if(!ptr) return;
     cross_lock(&malloc_lock);

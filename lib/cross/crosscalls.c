@@ -195,7 +195,7 @@ void cross_free_small(void* ptr, size_t size){
         return;
     }
     #if defined(__linux__) && defined(__x86_64__)
-    if((char*)ptr + size == brk_addr){
+    if((char*)ptr + size == brk_addr && (size < (sizeof(max_align_t) * 4) || size > (sizeof(max_align_t) * 32))){
         sys_brk((uintptr_t)ptr);
         brk_addr = (void*)sys_brk(0);
         return;

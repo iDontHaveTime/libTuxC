@@ -7,7 +7,7 @@ short __tuxc_align_lookup8[8] = {
 };
 
 size_t strlen(const char* str){
-    return strnlen(str, UINTPTR_MAX);
+    return strnlen(str, (size_t)-1);
 }
 
 size_t strnlen(const char* str, size_t max){

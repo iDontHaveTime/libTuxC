@@ -20,6 +20,15 @@ int atexit(void (*f)(void));
 void* malloc(size_t size) __port_attr((malloc));
 void free(void* ptr);
 void* realloc(void* mem, size_t newSize);
+void* calloc(size_t num, size_t size);
+
+char* itoa(int num, char* buffer, int base);
+char* ltoa(long num, char* buffer, int base);
+char* lltoa(long long num, char* buffer, int base);
+
+char* utoa(unsigned int num, char* buffer, int base);
+char* lutoa(unsigned long num, char* buffer, int base);
+char* llutoa(unsigned long long num, char* buffer, int base);
 
 void* aligned_malloc(size_t align, size_t size);
 size_t _tuxc_malloc_usersize(void* ptr);

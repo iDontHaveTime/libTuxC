@@ -28,6 +28,24 @@ extern void (*__preinit_array_end[])(void) __port_attr((weak));
 extern void (*__init_array_start[])(void) __port_attr((weak));
 extern void (*__init_array_end[])(void) __port_attr((weak));
 
+extern char __data_start[];
+extern char __data_end[];
+extern char __data_load_start[];
+
+extern char __bss_start[];
+extern char __bss_end[];
+
+extern char _etext[]; // end of .text
+extern char _edata[]; // end of .data
+extern char _end[]; // end of all segments
+
+extern char __rel_start[];
+extern char __rel_end[];
+extern char __text_start[];
+extern char __rodata_start[];
+
+extern char __stack_start[];
+
 #ifdef __cplusplus
 }
 #endif

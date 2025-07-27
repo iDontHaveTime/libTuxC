@@ -16,6 +16,30 @@ void run_array(void (**start)(void), void (**end)(void)){
     }
 }
 
+void crt_memcpy(void* dest, const void* src, size_t n){
+    char* d = (char*)dest;
+    const char* s = (const char*)src;
+    while(n--){
+        *d++ = *s++;
+    }
+}
+
+void crt_memset(void* dest, int val, size_t n){
+    unsigned char* d = (unsigned char*)dest;
+    while(n--){
+        *d++ = (unsigned char)val;
+    }
+}
+
+void crt_init(){
+    #ifndef __linux__
+    size_t data_size = __data_end - __data_start;
+    size_t bss_size = __bss_end - __bss_start;
+    crt_memcpy(__data_start, __data_load_start, data_size);
+    crt_memset(__bss_start, 0, bss_size);
+    #endif
+}
+
 void run_constructors(void){
     if(__preinit_array_start && __preinit_array_end){
         run_array(__preinit_array_start, __preinit_array_end);
@@ -34,15 +58,16 @@ void __cxa_guard_release(uint64_t* guard){
 }
 
 void __cxa_guard_abort(uint64_t* guard){
-    // nop
+    abort();
 }
 
 void __set_schk(){
+    crt_init();
     __stack_chk_guard = __stack_chk_guard_gen();
     run_constructors();
 }
 
-__attribute__((naked)) void _start(uintptr_t argc, char** argv){
+__attribute__((naked, used, visibility("default"))) void _start(uintptr_t argc, char** argv){
     __asm__ volatile(
         "pushq %%rbx\n"
         "leaq 8(%%rsp), %%rbx"

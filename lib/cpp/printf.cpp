@@ -14,7 +14,7 @@ enum FMTFLAG : int{
 };
 
 enum FMTLENGTH : uint8_t{
-    l_normal, l_hh, l_h, l_l, l_ll, l_j, l_z, l_t, l_L
+    l_normal = 0, l_hh = 1, l_h = 2, l_l = 3, l_ll = 4, l_j = 5, l_z = 6, l_t = 7, l_L = 8
 };
 
 struct FMTOUT{
@@ -163,15 +163,17 @@ struct FMTSTR{
         if(state == LENGTH){
             switch(c){
                 case 'h':
-                    if(length == l_normal)
+                    if(length == l_normal){
                         length = l_h;
+                    }
                     else if(length == l_h){
                         length = l_hh;
                         state = SPECIFIER;
                     }
-                    else
+                    else{
                         state = SPECIFIER;
-                    break;
+                    }
+                    return false;
                 case 'l':
                     if(length == l_normal)
                         length = l_l;
@@ -181,32 +183,32 @@ struct FMTSTR{
                     }
                     else
                         state = SPECIFIER;
-                    break;
+                    return false;
                 case 'L':
                     length = l_L;
                     state = SPECIFIER;
-                    break;
+                    return false;
                 case 'j':
                     length = l_j;
                     state = SPECIFIER;
-                    break;
+                    return false;
                 case 'z':
                     length = l_z;
                     state = SPECIFIER;
-                    break;
+                    return false;
                 case 't':
                     length = l_t;
                     state = SPECIFIER;
-                    break;
+                    return false;
                 default:
                     state = SPECIFIER;
                     break;
             }
 
-            if(state == SPECIFIER){
-                done = true;
-                return handle_specifier(c, ls);
-            }
+        }
+        if(state == SPECIFIER){
+            done = true;
+            return handle_specifier(c, ls);
         }
         return false;
     }
@@ -299,7 +301,7 @@ struct FMTSTR{
         }
 
         if(len < width && !(flags & LEFT_JUSTIFY)){
-            addpadding(' ', width - len);
+            if(addpadding(' ', width - len)) return true;
         }
 
         if(length == l_l){
@@ -317,7 +319,7 @@ struct FMTSTR{
         }
 
         if(len < width && (flags & LEFT_JUSTIFY)){
-            addpadding(' ', width - len);
+            if(addpadding(' ', width - len)) return true;
         }
 
         return false;
@@ -326,7 +328,7 @@ struct FMTSTR{
     inline bool handle_char(va_list ls){
 
         if(width > 1 && !(flags & LEFT_JUSTIFY)){
-            addpadding(' ', width - 1);
+            if(addpadding(' ', width - 1)) return true;
         }
 
         int c = va_arg(ls, int);
@@ -341,7 +343,7 @@ struct FMTSTR{
         }
 
         if(width > 1 && (flags & LEFT_JUSTIFY)){
-            addpadding(' ', width - 1);
+            if(addpadding(' ', width - 1)) return true;
         }
         return false;
     }
@@ -382,6 +384,163 @@ struct FMTSTR{
         #endif
     }
 
+    inline bool handle_int(va_list ls){
+        intmax_t i = 0;
+
+        char buff[128];
+        char* buffptr = buff;
+
+        switch(length){
+            case l_hh:
+                [[fallthrough]];
+            case l_h:
+                [[fallthrough]];
+            case l_normal:
+                i = va_arg(ls, int);
+                break;
+            case l_l:
+                i = va_arg(ls, long);
+                break;
+            case l_ll:
+                i = va_arg(ls, long long);
+                break;
+            case l_j:
+                i = va_arg(ls, intmax_t);
+                break;
+            case l_z:
+                i = va_arg(ls, ssize_t);
+                break;
+            case l_t:
+                i = va_arg(ls, ptrdiff_t);
+                break;
+            case l_L:
+                [[fallthrough]];
+            default: return true;
+        }
+
+        bool sign = i < 0;
+        if(sign) i = -i;
+        bool signcount = false;
+
+        if(flags & FORCE_SIGN){
+            signcount = true;
+            *buffptr++ = sign ? '-' : '+';
+        }
+        else if(flags & NO_SIGN_SPACE){
+            signcount = true;
+            *buffptr++ = sign ? '-' : ' ';
+        }
+        else{
+            if(sign){
+                signcount = true;
+                *buffptr++ = '-';
+            }
+        }
+        llutoa(i, buffptr, 10);
+         
+        size_t num_len = strlen(buffptr);
+        size_t total_len = signcount + num_len;
+        size_t zero_pad = 0;
+        size_t space_pad = 0;
+
+        if(precision != -1){
+            if(num_len < (size_t)precision){
+                zero_pad = precision - num_len;
+            }
+        }
+        else if((flags & PAD_ZERO) && !(flags & LEFT_JUSTIFY)){
+            if(width > total_len){
+                zero_pad = width - total_len;
+            }
+        }
+
+        total_len += zero_pad;
+
+        if(width > total_len){
+            space_pad = width - total_len;
+        }
+
+        if(!(flags & LEFT_JUSTIFY)){
+            if(addpadding(' ', space_pad)) return true;
+        }
+
+        if(signcount){
+            if(out->addchar(buff[0])) return true;
+        }
+
+        for(size_t z = 0; z < zero_pad; z++){
+            if(out->addchar('0')) return true;
+        }
+
+        for(size_t d = 0; d < num_len; d++){
+            if(out->addchar(buffptr[d])) return true;
+        }
+
+        if(flags & LEFT_JUSTIFY){
+            if(addpadding(' ', space_pad)) return true;
+        }
+        return false;
+    }
+
+    inline bool handle_uint(va_list ls){
+        uintmax_t u = 0;
+        char buff[128];
+        char* buffptr = buff;
+
+        switch(length){
+            case l_hh: u = (unsigned char)va_arg(ls, unsigned int); break;
+            case l_h:  u = (unsigned short)va_arg(ls, unsigned int); break;
+            case l_normal: u = va_arg(ls, unsigned int); break;
+            case l_l:  u = va_arg(ls, unsigned long); break;
+            case l_ll: u = va_arg(ls, unsigned long long); break;
+            case l_j:  u = va_arg(ls, uintmax_t); break;
+            case l_z:  u = va_arg(ls, size_t); break;
+            case l_t:  u = (uintmax_t)va_arg(ls, ptrdiff_t); break;
+            default: return true; // unsupported
+        }
+
+        llutoa(u, buffptr, 10);
+
+        size_t num_len = strlen(buffptr);
+        size_t zero_pad = 0;
+        size_t space_pad = 0;
+
+        if(precision != -1){
+            if(num_len < (size_t)precision){
+                zero_pad = precision - num_len;
+            }
+        }
+        else if((flags & PAD_ZERO) && !(flags & LEFT_JUSTIFY)){
+            if(width > num_len){
+                zero_pad = width - num_len;
+            }
+        }
+
+        size_t total_len = num_len + zero_pad;
+
+        if(width > total_len){
+            space_pad = width - total_len;
+        }
+
+        if(!(flags & LEFT_JUSTIFY)){
+            if(addpadding(' ', space_pad)) return true;
+        }
+
+        for(size_t z = 0; z < zero_pad; z++){
+            if(out->addchar('0')) return true;
+        }
+
+        for(size_t d = 0; d < num_len; d++){
+            if(out->addchar(buffptr[d])) return true;
+        }
+
+        if(flags & LEFT_JUSTIFY){
+            if(addpadding(' ', space_pad)) return true;
+        }
+
+        return false;
+    }
+
     inline bool handle_specifier(char c, va_list ls){
         switch(c){
             case '%':
@@ -393,6 +552,12 @@ struct FMTSTR{
                 return handle_char(ls);
             case 'n':
                 return handle_n(ls);
+            case 'i':
+                [[fallthrough]];
+            case 'd':
+                return handle_int(ls);
+            case 'u':
+                return handle_uint(ls);
             default:
                 return true;
         }
