@@ -22,6 +22,10 @@ size_t strnlen(const char* str, size_t max){
 
     alignment = alignment > sizeof(void*) ? sizeof(void*) : alignment;
 
+    #if defined(__TUXC_16_BYTES_ALLOWED__)
+    // soon
+    #endif
+
     switch(alignment){
         case 1:
             while(*str){

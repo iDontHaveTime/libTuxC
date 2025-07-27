@@ -4,28 +4,25 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
-typedef __typeof__(sizeof(void*)) size_t;
-#if __SIZEOF_POINTER__ == 8
-//typedef __UINT64_TYPE__ size_t;
-typedef __INT64_TYPE__ ptrdiff_t;
-#elif __SIZEOF_POINTER__ == 4
-typedef __INT32_TYPE__ ptrdiff_t;
-#elif __SIZEOF_POINTER__ == 2
-typedef __INT16_TYPE__ ptrdiff_t;
+typedef __SIZE_TYPE__ size_t;
+
+#if __SIZEOF_SIZE_T__ == 8
+typedef __INT64_TYPE__ ssize_t;
+#elif __SIZEOF_SIZE_T__ == 4
+typedef __INT32_TYPE__ ssize_t;
+#elif __SIZEOF_SIZE_T__ == 2
+typedef __INT16_TYPE__ ssize_t;
 #endif
 
+typedef __PTRDIFF_TYPE__ ptrdiff_t;
 #ifndef __cplusplus
-#ifdef _WIN32
-typedef short wchar_t;
-#else
-typedef int wchar_t;
-#endif
+typedef __WCHAR_TYPE__ wchar_t;
 #endif
 
 #define NULL ((void*)0)
 
 #ifndef __cplusplus
-    #if defined(__GNUC__) || defined(__clang__)
+    #if defined(__SIZEOF_INT128__)
         #define __INT128_DEFINED__
         typedef unsigned __int128 __u128;
         typedef __int128 __i128;

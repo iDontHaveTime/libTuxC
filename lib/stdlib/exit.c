@@ -58,8 +58,8 @@ int atexit(void (*f)(void)){
 
 void run_destructors(void){
     if(!__fini_array_start || !__fini_array_end) return;
-    for(ctor_t* dtor = __fini_array_start; dtor < __fini_array_end; dtor++){
-        (*dtor)();
+    for(ctor_t* dtor = __fini_array_end; dtor > __fini_array_start; dtor--){
+        (*(dtor - 1))();
     }
 }
 

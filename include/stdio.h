@@ -19,6 +19,10 @@ typedef struct{
 #define __fmt__func__(x, y)
 #endif  
 
+#ifdef __PRINTF_N_FMT__
+#define __PRINTF_CPP_N_FMT_ENABLE__ 1
+#endif
+
 #define __PRINTF_BUFFER_SIZE__ 512
 
 #define EOF (-1)

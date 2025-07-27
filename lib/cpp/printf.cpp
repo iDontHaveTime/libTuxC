@@ -2,6 +2,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "stdarg.h"
+#include "stddef.h"
 
 // %[flags][width][.precision][length]specifier
 enum FMTSTATE : uint8_t{
@@ -342,6 +343,42 @@ struct FMTSTR{
         return false;
     }
 
+    inline bool handle_n(va_list ls){
+        #ifndef __PRINTF_CPP_N_FMT_ENABLE__
+        
+        return false;
+        #else
+        switch(length){
+            case l_normal:
+                *(int*)va_arg(ls, int*) = out->l;
+                return false;
+            case l_hh:
+                *(signed char*)va_arg(ls, signed char*) = out->l;
+                return false;
+            case l_h:
+                *(short*)va_arg(ls, short*) = out->l;
+                return false;
+            case l_l:
+                *(long*)va_arg(ls, long*) = out->l;
+                return false;
+            case l_j:
+                [[fallthrough]];
+            case l_ll:
+                *(long long*)va_arg(ls, long long*) = out->l;
+                return false;
+            case l_t:
+                *(ptrdiff_t*)va_arg(ls, ptrdiff_t*) = out->l;
+                return false;
+            case l_z:
+                *(ssize_t*)va_arg(ls, ssize_t*) = out->l;
+                return false;
+            default:
+                return true;
+        }
+        return false;
+        #endif
+    }
+
     inline bool handle_specifier(char c, va_list ls){
         switch(c){
             case '%':
@@ -352,8 +389,7 @@ struct FMTSTR{
             case 'c':
                 return handle_char(ls);
             case 'n':
-                *(int*)va_arg(ls, int*) = out->l;
-                return false;
+                return handle_n(ls);
             default:
                 return true;
         }

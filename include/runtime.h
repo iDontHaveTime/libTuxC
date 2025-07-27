@@ -23,10 +23,10 @@ extern ctor_t __init_array_end[] __port_attr((weak));
 extern ctor_t __fini_array_start[] __port_attr((weak));
 extern ctor_t __fini_array_end[] __port_attr((weak));
 
-extern void (*__preinit_array_start[])(void) __attribute__((weak));
-extern void (*__preinit_array_end[])(void) __attribute__((weak));
-extern void (*__init_array_start[])(void) __attribute__((weak));
-extern void (*__init_array_end[])(void) __attribute__((weak));
+extern void (*__preinit_array_start[])(void) __port_attr((weak));
+extern void (*__preinit_array_end[])(void) __port_attr((weak));
+extern void (*__init_array_start[])(void) __port_attr((weak));
+extern void (*__init_array_end[])(void) __port_attr((weak));
 
 #ifdef __cplusplus
 }

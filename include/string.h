@@ -9,6 +9,10 @@ extern "C"{
 
 const char* strerror(int errnum);
 
+#ifdef __x86_64__
+#define __TUXC_16_BYTES_ALLOWED__
+#endif
+
 extern short __tuxc_align_lookup8[8];
 #define __tuxc_getalignment8(n) (__tuxc_align_lookup8[(size_t)n & 0x7])
 
