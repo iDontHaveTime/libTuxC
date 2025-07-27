@@ -25,6 +25,8 @@ char* strndup(const char* str, size_t max);
 void* memcpy(void* dest, const void* src, size_t n);
 void* mempcpy(void* dest, const void* src, size_t n);
 
+void* memset(void* dest, int ch, size_t n);
+
 // sets found to 1 if found c while copying
 void* memcpy_c(void* dest, const void* src, size_t n, char c, char* found);
 void* mempcpy_c(void* dest, const void* src, size_t n, char c, char* found);

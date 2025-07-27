@@ -1,13 +1,10 @@
 #include "string.h"
 #include "stdint.h"
+#include "stdio.h"
 
 short __tuxc_align_lookup8[8] = {
     8, 1, 2, 1, 4, 1, 2, 1
 };
-
-uint16_t get_alignment(void* ptr){
-    return __tuxc_align_lookup8[(uintptr_t)ptr & 0x7];
-}
 
 size_t strlen(const char* str){
     return strnlen(str, UINTPTR_MAX);
@@ -16,9 +13,8 @@ size_t strlen(const char* str){
 size_t strnlen(const char* str, size_t max){
     if(!str) return 0;
     const char* original_str = str;
-    const char* end = str + max;
-    uintptr_t addr = (uintptr_t)str;
-    uint16_t alignment = __tuxc_align_lookup8[addr & 0x7];
+    size_t c = 0;
+    short alignment = __tuxc_getalignment8(str);
 
     alignment = alignment > sizeof(void*) ? sizeof(void*) : alignment;
 
@@ -30,7 +26,8 @@ size_t strnlen(const char* str, size_t max){
         case 1:
             while(*str){
                 str++;
-                if(str >= end){
+                c++;
+                if(c >= max){
                     return max;
                 }
             }
@@ -44,18 +41,21 @@ size_t strnlen(const char* str, size_t max){
                     if(b2 & 0x0080){
                         #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
                         str++;
+                        c++;
                         #endif
                         break;
                     }
                     else{
                         #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
                         str++;
+                        c++;
                         #endif
                         break;
                     }
                 }
                 str += 2;
-                if(str >= end){
+                c += 2;
+                if(c >= max){
                     return max;
                 }
             }
@@ -69,34 +69,41 @@ size_t strnlen(const char* str, size_t max){
                     if(b2 & 0x00000080){
                         #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
                         str += 3;
+                        c += 3;
                         #endif
                         break;
                     }
                     else if(b2 & 0x00008000){
                         #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
                         str += 2;
+                        c += 2;
                         #else
                         str++;
+                        c++;
                         #endif
                         break;
                     }
                     else if(b2 & 0x00800000){
                         #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
                         str++;
+                        c++;
                         #else
                         str += 2;
+                        c += 2;
                         #endif
                         break;
                     }
                     else{
                         #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
                         str += 3;
+                        c += 3;
                         #endif
                         break;
                     }
                 }
                 str += 4;
-                if(str >= end){
+                c += 4;
+                if(c >= max){
                     return max;
                 }
             }
@@ -110,66 +117,81 @@ size_t strnlen(const char* str, size_t max){
                     if(b2 & 0x0000000000000080){
                         #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
                         str += 7;
+                        c += 7;
                         #endif
                         break;
                     }
                     else if(b2 & 0x0000000000008000){
                         #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
                         str += 6;
+                        c += 6;
                         #else
                         str++;
+                        c++;
                         #endif
                         break;
                     }
                     else if(b2 & 0x0000000000800000){
                         #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
                         str += 5;
+                        c += 5;
                         #else
                         str += 2;
+                        c += 2;
                         #endif
                         break;
                     }
                     else if(b2 & 0x0000000080000000){
                         #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
                         str += 4;
+                        c += 4;
                         #else
                         str += 3;
+                        c += 3;
                         #endif
                         break;
                     }
                     else if(b2 & 0x0000008000000000){
                         #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
                         str += 3;
+                        c += 3;
                         #else
                         str += 4;
+                        c += 4;
                         #endif
                         break;
                     }
                     else if(b2 & 0x0000800000000000){
                         #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
                         str += 2;
+                        c += 2;
                         #else
                         str += 5;
+                        c += 5;
                         #endif
                         break;
                     }
                     else if(b2 & 0x0080000000000000){
                         #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
                         str++;
+                        c++;
                         #else
                         str += 6;
+                        c += 6;
                         #endif
                         break;
                     }
                     else{
                         #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
                         str += 7;
+                        c += 7;
                         #endif
                         break;
                     }
                 }
                 str += 8;
-                if(str >= end){
+                c += 8;
+                if(c >= max){
                     return max;
                 }
             }

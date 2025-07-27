@@ -306,10 +306,13 @@ struct FMTSTR{
             wchar_to_str((const wchar_t*)s, len);
         }
         else{
-            for(size_t i = 0; i < len; i++){
-                if(out->addchar(((const char*)s)[i])){
+            const char* ptr = (char*)s;
+            const char* end = ptr + len;
+            while(ptr != end){
+                if(out->addchar(*ptr)){
                     return true;
                 }
+                ptr++;
             }
         }
 

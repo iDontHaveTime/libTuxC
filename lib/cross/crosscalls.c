@@ -73,33 +73,37 @@ typedef struct{
 ReusableMem memArr[128];
 size_t reusableMemC = 0;
 
+static inline void swapReusableMem(ReusableMem* a, ReusableMem* b){
+    ReusableMem temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
 // ASSUMES CALLER THREAD SAFETY
 void* cross_alloc_small(size_t size, size_t* got){
-    #if defined(__linux__) && defined(__x86_64__)
+    #if defined(__x86_64__)
+    #if defined(__linux__)
     if(!brk_addr){
         brk_addr = (void*)sys_brk(0);
     }
 
     if(reusableMemC > 0){
         for(size_t i = reusableMemC; i > 0; i--){
-            if(memArr[i-1].size > size){
+            if(memArr[i-1].size >= size){
                 *got = size;
                 void* mem = memArr[i-1].address;
 
                 memArr[i-1].address = (char*)memArr[i-1].address + size;
                 memArr[i-1].size -= size;
-                return mem;
-            }
-            else if(memArr[i-1].size == size){
-                *got = size;
-                void* mem = memArr[i-1].address;
-                for(size_t j = i; j + 1 < reusableMemC; j++){
-                    memArr[j] = memArr[j + 1];
-                }
-                reusableMemC--;
-                return mem;
-            }
 
+                if(memArr[i-1].size < (sizeof(max_align_t) * 2)){
+                    for(size_t j = i; j + 1 < reusableMemC; j++){
+                        memArr[j] = memArr[j+1];
+                    }
+                    reusableMemC--;
+                }
+                return mem;
+            }
         }
     }
     void* start = brk_addr;
@@ -116,8 +120,60 @@ void* cross_alloc_small(size_t size, size_t* got){
     return start;
     
     #endif
+    #else
     *got = 0;
     return NULL;
+    #endif
+}
+
+size_t partition(size_t low, size_t high){
+    uintptr_t pivot_address = (uintptr_t)memArr[high].address;
+    
+    size_t i = low;
+
+    for(size_t j = low; j < high; j++) {
+        if((uintptr_t)memArr[j].address <= pivot_address){
+            swapReusableMem(&memArr[i], &memArr[j]);
+            i++;
+        }
+    }
+    swapReusableMem(&memArr[i], &memArr[high]);
+    return i;
+}
+
+void sortReusableMemArray(size_t low, size_t high){
+    if(low < high){
+        size_t pi = partition(low, high);
+
+        if(pi > 0){
+            sortReusableMemArray(low, pi - 1);
+        }
+        sortReusableMemArray(pi + 1, high);
+    }
+}
+
+void mergeAdjacentFreeBlocks(size_t *count_ptr) {
+    size_t count = *count_ptr;
+    if(count <= 1){
+        return;
+    }
+
+    size_t current_write_idx = 0;
+
+    for(size_t i = 0; i < count; i++){
+        if(current_write_idx == 0 ||
+            (char*)memArr[current_write_idx - 1].address + memArr[current_write_idx-1].size != memArr[i].address){
+
+            if(current_write_idx != i){
+                memArr[current_write_idx] = memArr[i];
+            }
+            current_write_idx++;
+        } 
+        else{
+            memArr[current_write_idx - 1].size += memArr[i].size;
+        }
+    }
+    *count_ptr = current_write_idx;
 }
 
 void cross_free_small(void* ptr, size_t size){
@@ -125,16 +181,21 @@ void cross_free_small(void* ptr, size_t size){
         return;
     }
     #if defined(__linux__) && defined(__x86_64__)
-    if(brk_addr - size == ptr){
+    if((char*)ptr + size == brk_addr){
         sys_brk((uintptr_t)ptr);
+        brk_addr = (void*)sys_brk(0);
         return;
     }
-    if(size < 16) return;
+    if(size < (sizeof(max_align_t) * 2)) return;
     if(reusableMemC < (sizeof(memArr) / sizeof(ReusableMem))){
         memArr[reusableMemC++] = (ReusableMem){
             .address = ptr,
             .size = size,
         };
+    }
+    else{
+        sortReusableMemArray(0, reusableMemC - 1);
+        mergeAdjacentFreeBlocks(&reusableMemC);
     }
     #endif
 }
