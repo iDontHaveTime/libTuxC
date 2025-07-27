@@ -5,13 +5,11 @@
 extern "C"{
 #endif
 
+// FILE, fpos_t
 #include "noncstd/stdiofile.h"
+
 #include "stddef.h"
 #include "stdarg.h"
-
-typedef struct{
-    long long pos;
-} fpos_t;
 
 #if defined(__GNUC__) || defined(__clang__)
 #define __fmt__func__(x, y) __attribute__((format(printf, x, y)))
@@ -76,11 +74,16 @@ int getchar(void);
 
 int ungetc(int c, FILE* fs);
 
+// buffers
 int setvbuf(FILE* fs, char* buff, int mode, size_t size);
 void setbuf(FILE* fs, char* buff);
+void setbuffer(FILE* fs, char* buff, size_t size);
+void setlinebuf(FILE* fs);
+// end of buffers
 
 void perror(const char* str);
 
+// C++
 int printf(const char* fmt, ...) __fmt__func__(1, 2);
 int vprintf(const char* fmt, va_list args);
 
@@ -92,6 +95,12 @@ int vsnprintf(char* str, size_t max, const char* fmt, va_list args);
 
 int fprintf(FILE* fs, const char* fmt, ...) __fmt__func__(2, 3);
 int vfprintf(FILE* fs, const char* fmt, va_list args);
+// End of C++
+
+int fseek(FILE* fs, long offset, int whence);
+long ftell(FILE* fs);
+
+void rewind(FILE* fs);
 
 #define fputc putc
 #define getc fgetc

@@ -15,6 +15,7 @@ typedef struct{
 
 int64_t cross_write(unsigned int fd, const char* buff, size_t n); 
 int64_t cross_read(unsigned int fd, char* buff, size_t n);
+int64_t cross_seek(unsigned int fd, ssize_t offset, int whence);
 noreturn void cross_exit(int code);
 
 void* cross_alloc_big(size_t size, size_t* allocated);

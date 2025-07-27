@@ -7,6 +7,20 @@
 #include "linux/syscalls.h"
 #endif
 
+int64_t cross_seek(unsigned int fd, ssize_t offset, int whence){
+    #if defined(__linux__) && defined(__x86_64__)
+    int64_t ret = sys_lseek(fd, offset, whence);
+    if(ret < 0){
+        errno = (int)(-ret);
+        return -1;
+    }
+    return ret;
+    #else
+    errno = ENOSYS;
+    return -1;
+    #endif
+}
+
 int64_t cross_write(unsigned int fd, const char* buff, size_t n){
     #if defined(__linux__) && defined(__x86_64__)
     int64_t ret = sys_write(fd, buff, n);

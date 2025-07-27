@@ -33,6 +33,10 @@ enum{
 };
 
 typedef struct{
+    long long pos;
+} fpos_t;
+
+typedef struct{
     char* buff_start;
     char* buff_end;
     char* buff_ptr;

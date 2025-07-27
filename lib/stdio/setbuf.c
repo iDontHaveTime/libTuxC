@@ -52,7 +52,7 @@ int setvbuf(FILE* fs, char* buff, int mode, size_t size){
         else{
             fs->open_mode |= __FILE_MODE_STACK_ALLOC; // stack alloc not freed
             fs->buff_start = buff;
-            fs->buff_end = &buff[size-1];
+            fs->buff_end = buff + size;
             fs->buff_ptr = buff;
             fs->read_ptr = buff;
 
@@ -67,4 +67,12 @@ int setvbuf(FILE* fs, char* buff, int mode, size_t size){
 
 void setbuf(FILE* fs, char* buff){
     setvbuf(fs, buff, buff ? _IOFBF : _IONBF, BUFSIZ);
+}
+
+void setbuffer(FILE* fs, char* buff, size_t size){
+    setvbuf(fs, buff, buff ? _IOFBF : _IONBF, size);
+}
+
+void setlinebuf(FILE* fs){
+    setvbuf(fs, NULL, _IOLBF, 0);
 }

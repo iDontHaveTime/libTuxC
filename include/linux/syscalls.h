@@ -163,7 +163,6 @@ static inline int64_t dynamicSyscall(uint64_t sysnum, int argc,
 #define EDOM 33 // Math argument out of domain of func
 #define ERANGE 34 // Math result not representable
 
-
 noreturn static inline void sys_exit(long long code){
     syscall1(60, code);
     __builtin_unreachable();
@@ -175,6 +174,10 @@ static inline int64_t sys_write(unsigned long long fd, const char* buff, size_t 
 
 static inline int64_t sys_read(unsigned long long fd, char* buff, size_t count){
     return syscall3(0, fd, (uint64_t)buff, count);
+}
+
+static inline int64_t sys_lseek(unsigned long long fd, int64_t offset, uint64_t origin){
+    return syscall3(8, fd, offset, origin);
 }
 
 

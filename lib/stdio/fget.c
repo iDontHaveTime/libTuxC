@@ -31,6 +31,7 @@ char* fgets(char* buff, size_t n, FILE* fs){
 }
 
 char* gets(char* buff){
+    if(!buff) return buff;
     size_t pos = 0;
     int ch;
 
