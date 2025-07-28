@@ -384,8 +384,10 @@ struct FMTSTR{
         #endif
     }
 
-    inline bool handle_int(va_list ls){
+    inline bool handle_int(va_list ls, int base, bool _signed){
+        if(base != 10) _signed = false;
         intmax_t i = 0;
+        uintmax_t u = 0;
 
         char buff[128];
         char* buffptr = buff;
@@ -396,47 +398,67 @@ struct FMTSTR{
             case l_h:
                 [[fallthrough]];
             case l_normal:
-                i = va_arg(ls, int);
+                if(!_signed)
+                    u = va_arg(ls, unsigned int);
+                else
+                    i = va_arg(ls, int);
                 break;
             case l_l:
-                i = va_arg(ls, long);
+                if(!_signed)
+                    u = va_arg(ls, unsigned long);
+                else
+                    i = va_arg(ls, long);
                 break;
             case l_ll:
-                i = va_arg(ls, long long);
+                if(!_signed)
+                    u = va_arg(ls, unsigned long long);
+                else
+                    i = va_arg(ls, long long);
                 break;
             case l_j:
-                i = va_arg(ls, intmax_t);
+                if(!_signed)
+                    u = va_arg(ls, uintmax_t);
+                else
+                    i = va_arg(ls, intmax_t);
                 break;
             case l_z:
-                i = va_arg(ls, ssize_t);
+                if(!_signed)
+                    u = va_arg(ls, size_t);
+                else
+                    i = va_arg(ls, ssize_t);
                 break;
             case l_t:
-                i = va_arg(ls, ptrdiff_t);
+                if(!_signed)
+                    u = va_arg(ls, ptrdiff_t);
+                else
+                    i = va_arg(ls, ptrdiff_t);
                 break;
             case l_L:
                 [[fallthrough]];
             default: return true;
         }
-
-        bool sign = i < 0;
+        bool sign = _signed ? i < 0 : false;
         if(sign) i = -i;
         bool signcount = false;
 
-        if(flags & FORCE_SIGN){
-            signcount = true;
-            *buffptr++ = sign ? '-' : '+';
-        }
-        else if(flags & NO_SIGN_SPACE){
-            signcount = true;
-            *buffptr++ = sign ? '-' : ' ';
-        }
-        else{
-            if(sign){
+        if(_signed){
+            if(flags & FORCE_SIGN){
                 signcount = true;
-                *buffptr++ = '-';
+                *buffptr++ = sign ? '-' : '+';
+            }
+            else if(flags & NO_SIGN_SPACE){
+                signcount = true;
+                *buffptr++ = sign ? '-' : ' ';
+            }
+            else{
+                if(sign){
+                    signcount = true;
+                    *buffptr++ = '-';
+                }
             }
         }
-        llutoa(i, buffptr, 10);
+
+        llutoa(_signed ? i : u, buffptr, 10);
          
         size_t num_len = strlen(buffptr);
         size_t total_len = signcount + num_len;
@@ -482,65 +504,6 @@ struct FMTSTR{
         return false;
     }
 
-    inline bool handle_uint(va_list ls){
-        uintmax_t u = 0;
-        char buff[128];
-        char* buffptr = buff;
-
-        switch(length){
-            case l_hh: u = (unsigned char)va_arg(ls, unsigned int); break;
-            case l_h:  u = (unsigned short)va_arg(ls, unsigned int); break;
-            case l_normal: u = va_arg(ls, unsigned int); break;
-            case l_l:  u = va_arg(ls, unsigned long); break;
-            case l_ll: u = va_arg(ls, unsigned long long); break;
-            case l_j:  u = va_arg(ls, uintmax_t); break;
-            case l_z:  u = va_arg(ls, size_t); break;
-            case l_t:  u = (uintmax_t)va_arg(ls, ptrdiff_t); break;
-            default: return true; // unsupported
-        }
-
-        llutoa(u, buffptr, 10);
-
-        size_t num_len = strlen(buffptr);
-        size_t zero_pad = 0;
-        size_t space_pad = 0;
-
-        if(precision != -1){
-            if(num_len < (size_t)precision){
-                zero_pad = precision - num_len;
-            }
-        }
-        else if((flags & PAD_ZERO) && !(flags & LEFT_JUSTIFY)){
-            if(width > num_len){
-                zero_pad = width - num_len;
-            }
-        }
-
-        size_t total_len = num_len + zero_pad;
-
-        if(width > total_len){
-            space_pad = width - total_len;
-        }
-
-        if(!(flags & LEFT_JUSTIFY)){
-            if(addpadding(' ', space_pad)) return true;
-        }
-
-        for(size_t z = 0; z < zero_pad; z++){
-            if(out->addchar('0')) return true;
-        }
-
-        for(size_t d = 0; d < num_len; d++){
-            if(out->addchar(buffptr[d])) return true;
-        }
-
-        if(flags & LEFT_JUSTIFY){
-            if(addpadding(' ', space_pad)) return true;
-        }
-
-        return false;
-    }
-
     inline bool handle_specifier(char c, va_list ls){
         switch(c){
             case '%':
@@ -555,9 +518,9 @@ struct FMTSTR{
             case 'i':
                 [[fallthrough]];
             case 'd':
-                return handle_int(ls);
+                return handle_int(ls, 10, true);
             case 'u':
-                return handle_uint(ls);
+                return handle_int(ls, 10, false);
             default:
                 return true;
         }
