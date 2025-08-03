@@ -1,5 +1,5 @@
-#ifndef STDIOFILE_H
-#define STDIOFILE_H
+#ifndef _STDIOFILE_H
+#define _STDIOFILE_H
 
 #ifdef __cplusplus
 extern "C"{

@@ -55,14 +55,14 @@ char* lltoa(long long num, char* buffer, int base){
 }
 
 char* utoa(unsigned int num, char* buffer, int base){
-    return llutoa(num, buffer, base);
+    return ulltoa(num, buffer, base);
 }
 
-char* lutoa(unsigned long num, char* buffer, int base){
-    return llutoa(num, buffer, base);
+char* ultoa(unsigned long num, char* buffer, int base){
+    return ulltoa(num, buffer, base);
 }
 
-char* llutoa(unsigned long long num, char* buffer, int base){
+char* ulltoa(unsigned long long num, char* buffer, int base){
     if(base < 2 || base > 36){
         buffer[0] = '\0';
         return buffer;

@@ -1,5 +1,5 @@
-#ifndef RUNTIME_H
-#define RUNTIME_H
+#ifndef _RUNTIME_H
+#define _RUNTIME_H
 
 #ifdef __cplusplus
 extern "C"{

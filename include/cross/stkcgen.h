@@ -1,5 +1,5 @@
-#ifndef STKCGEN_H
-#define STKCGEN_H
+#ifndef _STKCGEN_H
+#define _STKCGEN_H
 
 #ifdef __cplusplus
 extern "C"{

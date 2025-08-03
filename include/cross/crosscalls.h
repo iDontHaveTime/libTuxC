@@ -1,5 +1,5 @@
-#ifndef CROSSCALLS_H
-#define CROSSCALLS_H
+#ifndef _CROSSCALLS_H
+#define _CROSSCALLS_H
 
 #ifdef __cplusplus
 extern "C"{

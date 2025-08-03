@@ -20,11 +20,6 @@ size_t fwrite(const void* mem, size_t size, size_t count, FILE* stream){
 
     size_t total = size * count;
     const char* src = (const char*)mem;
-    size_t written = 0;
-
-    size_t buflen = stream->buff_end - stream->buff_start;
-    size_t bufused = stream->buff_ptr - stream->buff_start;
-    size_t bufavail = buflen - bufused;
 
     if(!stream->buff_start){
         int64_t res = cross_write(stream->fd, src, total);
@@ -32,6 +27,20 @@ size_t fwrite(const void* mem, size_t size, size_t count, FILE* stream){
         if(res < 0) return 0;
         return res / size;
     }
+
+    size_t buflen = stream->buff_end - stream->buff_start;
+    size_t bufused = stream->buff_ptr - stream->buff_start;
+    size_t bufavail = buflen - bufused;
+
+    if(total == 1){
+        if(bufavail >= 1){
+            *stream->buff_ptr++ = *(char*)mem;
+            cross_unlock(&stream->lock);
+            return 1;
+        }
+    }
+
+    size_t written = 0;
 
     if(total > bufavail){
         if(bufavail > 0){
@@ -46,7 +55,7 @@ size_t fwrite(const void* mem, size_t size, size_t count, FILE* stream){
         }
 
         while(total >= buflen){
-            stream->buff_ptr = mempcpy_c(stream->buff_start, src, buflen, '\n', &nl);
+            stream->buff_ptr = mempcpy(stream->buff_start, src, buflen);
             src += buflen;
             total -= buflen;
             written += buflen;

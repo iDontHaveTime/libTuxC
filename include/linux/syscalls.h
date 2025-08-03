@@ -1,5 +1,5 @@
-#ifndef SYSCALLS_H
-#define SYSCALLS_H
+#ifndef _SYSCALLS_H
+#define _SYSCALLS_H
 
 #ifdef __cplusplus
 extern "C"{

@@ -1,5 +1,5 @@
-#ifndef STDIO_H
-#define STDIO_H
+#ifndef _STDIO_H
+#define _STDIO_H
 
 #ifdef __cplusplus
 extern "C"{
@@ -109,4 +109,4 @@ void rewind(FILE* fs);
 }
 #endif
 
-#endif // STDIO_H
+#endif // _STDIO_H

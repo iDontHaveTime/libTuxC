@@ -1,5 +1,5 @@
-#ifndef STRING_H
-#define STRING_H
+#ifndef _STRING_H
+#define _STRING_H
 
 #ifdef __cplusplus
 extern "C"{
@@ -26,6 +26,8 @@ void* memcpy(void* dest, const void* src, size_t n);
 void* mempcpy(void* dest, const void* src, size_t n);
 
 void* memset(void* dest, int ch, size_t n);
+
+void* memmove(void* dest, const void* src, size_t n);
 
 // sets found to 1 if found c while copying
 void* memcpy_c(void* dest, const void* src, size_t n, char c, char* found);
