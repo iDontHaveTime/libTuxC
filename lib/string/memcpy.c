@@ -31,7 +31,7 @@ void* memcpy(void* dest, const void* src, size_t n){
     }
 
     n /= align;
-
+    
     if(align == 1){
         __asm__ volatile(
             "cld\n"
